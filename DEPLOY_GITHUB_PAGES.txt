@@ -1,0 +1,25 @@
+METEOCLIMA — PUBBLICAZIONE SU GITHUB PAGES
+
+Cartella già pronta per la pubblicazione HTTPS.
+
+File principali:
+- index.html
+- manifest.json
+- service-worker.js
+- icon-192.png
+- icon-512.png
+- .nojekyll
+- .github/workflows/pages.yml
+
+Procedura prevista:
+1. Creare un repository GitHub chiamato, per esempio, meteoclima.
+2. Caricare tutti i file di questa cartella nella root del repository.
+3. Impostare il branch principale su main.
+4. In GitHub: Settings > Pages > Build and deployment > Source: GitHub Actions.
+5. Il workflow pages.yml pubblicherà automaticamente il sito.
+6. GitHub mostrerà un indirizzo HTTPS del tipo:
+   https://NOMEUTENTE.github.io/meteoclima/
+7. Aprire quell'indirizzo su Android/Chrome e scegliere "Installa app".
+
+NOTA:
+L'URL finale dipende dal nome account GitHub e dal nome repository.

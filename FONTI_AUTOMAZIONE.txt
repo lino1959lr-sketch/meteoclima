@@ -1,0 +1,30 @@
+METEOCLIMA — AUTOMAZIONE DATI
+
+Sorgenti usate dalla PWA:
+- Open-Meteo GFS API: https://api.open-meteo.com/v1/gfs
+- Open-Meteo GEM API: https://api.open-meteo.com/v1/gem
+
+Variabili lette automaticamente:
+- pressure_msl
+- temperature_850hPa
+- geopotential_height_500hPa
+- wind_speed_300hPa
+
+Uso:
+- confronto GFS/GEM intorno a +120 h
+- il risultato alimenta automaticamente la scheda "GFS vs GEM"
+- nessuna chiave API richiesta per l'uso base della PWA
+
+Nota metodologica:
+Il confronto puntuale è un controllo quantitativo e non sostituisce la lettura delle mappe sinottiche europee.
+
+
+ENSEMBLE:
+- Open-Meteo Ensemble API: https://ensemble-api.open-meteo.com/v1/ensemble
+- GEFS model key used: gfs025
+- GEM ensemble model key used: gem_global
+
+Metodo affidabilità:
+- dispersione T850 tra membri a ~+120 h
+- supporto aggiuntivo da spread Z500 e pressione
+- output sintetico: Alta / Media-Alta / Media / Bassa

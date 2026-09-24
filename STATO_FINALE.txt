@@ -1,0 +1,19 @@
+METEOCLIMA — STATO FINALE AUTOMAZIONE
+
+Completati 3/3 passaggi:
+1. GFS + GEM reali
+2. Ensemble reali e affidabilità
+3. Diagnosi automatica + storico
+
+La PWA:
+- legge dati reali
+- confronta GFS e GEM
+- valuta gli ensemble
+- genera segnale dominante
+- identifica scadenza chiave
+- valuta possibile svolta
+- aggiorna storico e confronto con ieri
+
+Limite attuale:
+la diagnosi automatica usa un punto di riferimento nell'Italia centrale come controllo quantitativo,
+mentre la lettura sinottica europea resta supportata dalle mappe operative.

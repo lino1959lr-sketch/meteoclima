@@ -1,0 +1,16 @@
+METEOCLIMA — FONTI OPERATIVE v2
+
+Mappe GFS Europe:
+Meteociel / GFS 0.25°
+- Z500 + pressione: https://www.meteociel.fr/modeles/gfse_cartes.php?code=0&ech=120&mode=0
+- Jet stream: https://www.meteociel.fr/modeles/gfse_cartes.php?code=0&ech=120&mode=5
+- T850: https://www.meteociel.fr/modeles/gfse_cartes.php?code=0&ech=120&mode=1
+
+ENSO:
+NOAA Climate Prediction Center
+https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/probabilities/
+https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/outlook/
+
+Nota:
+Le immagini remote possono cambiare a ogni nuovo run del modello. La PWA prova a visualizzarle direttamente;
+se una sorgente blocca l'incorporamento, mostra un collegamento alla carta originale.

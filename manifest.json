@@ -1,0 +1,25 @@
+{
+  "name": "Meteoclima",
+  "short_name": "Meteoclima",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#061625",
+  "theme_color": "#07192b",
+  "description": "Dashboard Meteoclima per analisi meteo-climatica quotidiana.",
+  "scope": "./",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

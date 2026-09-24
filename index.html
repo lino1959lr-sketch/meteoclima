@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07192b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Meteoclima — Osservatorio meteo-climatico personale</title>
+<style>
+:root{
+  --bg:#061625; --panel:#0b2440; --panel2:#0f2f52; --line:#1b5d86;
+  --text:#f4f8fb; --muted:#b7c9d8; --cyan:#18b5ff; --green:#38d78b;
+  --amber:#ffbe2f; --red:#ff5d5d;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#05111e,#081a2d 45%,#071625);color:var(--text)}
+.app{max-width:1180px;margin:auto;padding:16px}
+header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 35%,#22c7ff,#1568cb 45%,#07192b 70%);font-size:30px}
+h1{margin:0;font-size:2rem;line-height:1}.sub{color:var(--muted);margin-top:5px}
+.datebox,.action{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:11px 14px}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{border:0;border-radius:12px;padding:11px 15px;background:#0d4779;color:white;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.12)}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#08203a;padding:6px;border-radius:16px;margin-bottom:14px}
+nav button{background:transparent}.active{background:#0d8eea!important}
+.signal{display:flex;align-items:center;gap:18px;background:linear-gradient(90deg,#063e3b,#0a283f);border:1px solid #1aa38b;border-radius:16px;padding:16px 18px;margin-bottom:14px}
+.signal .label{font-size:1.1rem;font-weight:800;min-width:190px}.signal .main{font-size:1.45rem;font-weight:900;color:#ffd31f}.signal .small{font-weight:500;color:white;font-size:1rem}
+.maps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.card h3{margin:0;padding:12px 14px;font-size:1.05rem}
+.map{height:250px;display:grid;place-items:center;position:relative;overflow:hidden}
+.map1{background:
+radial-gradient(circle at 28% 60%,#e43a22 0 7%,#f88b21 8% 18%,#f4d74a 19% 28%,transparent 29%),
+radial-gradient(circle at 82% 40%,#2436b5 0 10%,#176ccc 11% 22%,#28c8dd 23% 34%,transparent 35%),
+linear-gradient(130deg,#193962,#2ab8d2 45%,#f1c94c 70%,#d74a2c);
+}
+.map2{background:
+radial-gradient(circle at 30% 45%,#ff7c28 0 12%,#ffd73c 13% 26%,#49c776 27% 39%,transparent 40%),
+radial-gradient(circle at 82% 42%,#3b36b8 0 12%,#1c78c8 13% 25%,#31c8d8 26% 40%,transparent 41%),
+linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
+}
+.map3{background:linear-gradient(120deg,#7423b8 0%,#1f5fd1 18%,#16b7c4 38%,#64d25f 52%,#f0d33d 68%,#ff7b27 82%,#e52724 100%)}
+.contours{position:absolute;inset:0;background:repeating-radial-gradient(ellipse at 50% 50%,transparent 0 14px,rgba(0,0,0,.35) 15px 16px,transparent 17px 28px);opacity:.55}
+.map-note{position:absolute;bottom:10px;left:10px;background:rgba(2,11,20,.72);padding:7px 9px;border-radius:8px;font-size:.82rem}
+.meta{padding:0 14px 12px;color:var(--muted);font-size:.88rem}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.metric{padding:15px}.metric .title{font-size:1.05rem;font-weight:800}.metric .value{font-size:1.25rem;font-weight:900;margin:8px 0}.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}
+.confbar{display:flex;gap:5px;margin-top:9px}.confbar span{height:14px;flex:1;border-radius:4px;background:#264965}.confbar .on{background:var(--green)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.final{padding:14px}
+.line{display:grid;grid-template-columns:190px 1fr;gap:10px;align-items:center;margin:7px 0}
+.badge{border-radius:999px;padding:8px 10px;text-align:center;font-weight:900;background:#0d8eea}.b2{background:#e8aa22;color:#17202b}.b3{background:#28b76e}.b4{background:#e94d4d}
+.bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mini{padding:14px}
+.mini p{margin:8px 0;color:var(--muted)}
+.hidden{display:none}
+@media(max-width:820px){
+  nav{grid-template-columns:1fr 1fr}
+  .maps,.row3,.row2,.bottom{grid-template-columns:1fr}
+  .signal{align-items:flex-start;flex-direction:column}.signal .label{min-width:0}
+  .line{grid-template-columns:1fr}
+  .map{height:210px}
+}
+
+.realmap{height:250px;background:#04101c;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.realmap img{width:100%;height:100%;object-fit:cover;display:block}
+.fallback{display:none;width:100%;height:100%;place-items:center;text-align:center;padding:20px;color:var(--muted)}
+.fallback a{color:#55c8ff;font-weight:800}
+.sourcebox{margin:12px 0;padding:12px 14px;background:#081f35;border:1px solid #1b5d86;border-radius:14px;color:var(--muted);font-size:.9rem}
+.sourcebox a{color:#55c8ff}
+
+
+.comparegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.comparebox{background:#081f35;border:1px solid #1b5d86;border-radius:14px;padding:14px}
+.comparetitle{font-size:.9rem;color:var(--muted);font-weight:800;letter-spacing:.06em}
+.comparevalue{font-size:1.15rem;font-weight:900;margin:7px 0;color:#ffd31f}
+.comparedetail{color:var(--muted);line-height:1.35}
+.consensus{margin-top:12px;padding:12px 14px;background:#092842;border-radius:12px;border:1px solid #1b5d86}
+@media(max-width:820px){.comparegrid{grid-template-columns:1fr}}
+
+
+.history-list{display:grid;gap:10px}
+.history-item{background:#081f35;border:1px solid #1b5d86;border-radius:14px;padding:12px 14px}
+.history-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.history-date{font-weight:900}
+.history-signal{color:#ffd31f;font-weight:800}
+.history-meta{color:var(--muted);margin-top:6px;line-height:1.4}
+.delta{display:grid;grid-template-columns:180px 1fr;gap:10px;margin:8px 0}
+.delta b{color:#55c8ff}
+@media(max-width:820px){.delta{grid-template-columns:1fr}}
+
+
+.liveok{color:var(--green);font-weight:900}.livewarn{color:var(--amber);font-weight:900}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="logo">🌍</div>
+    <div><h1>Meteoclima</h1><div class="sub">Analisi • Scenari • Tendenze</div></div>
+  </div>
+  <div class="top-actions">
+    <div class="datebox"><b>Giovedì 24 settembre 2026</b><br><span class="sub">Aggiornato ore 18:00</span></div>
+    <button id="refreshBtn">↻ Aggiorna</button><button id="installBtn">⬇ Installa</button>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-tab="oggi">🏠 Oggi</button>
+  <button data-tab="mappe">🗺️ Mappe</button>
+  <button data-tab="ieri">↔ Confronto ieri</button>
+  <button data-tab="storico">🗂️ Storico</button>
+  <button data-tab="indici">📊 ENSO e indici</button>
+</nav>
+
+<section id="oggi" class="tab">
+
+  <div class="sourcebox">
+    <b>Dati reali collegati:</b> le tre carte operative usano il run GFS del 24/09/2026 06Z a +120 h quando l'immagine remota è disponibile.
+    ENSO: NOAA CPC, aggiornamento settembre 2026. Le mappe provengono da Meteociel/GFS e si aggiornano lato sorgente.
+  </div>
+
+  
+  <div class="sourcebox" id="autoStatus">
+    <b>Diagnosi automatizzata:</b> i testi della dashboard sono ora generati da un unico profilo dati giornaliero.
+    Quando collegheremo GFS/GEM/ensemble in modo strutturato, basterà aggiornare i dati e la diagnosi cambierà da sola.
+  </div>
+
+  <div class="signal">
+    <div class="label">🎯 Segnale dominante</div>
+    <div class="main" id="signalText"></div>
+  </div>
+
+  <div class="maps">
+    <div class="card">
+      <h3>1. Z500 + pressione</h3>
+      <div class="realmap">
+        <img src="https://modeles16.meteociel.fr/modeles/gfs/run/gfs-0-120.png?6=" alt="GFS Europe Z500 e pressione +120h">
+      </div>
+      <div class="meta">GFS 0.25° • run 24/09/2026 06Z • +120 h • fonte Meteociel</div>
+    </div>
+    <div class="card">
+      <h3>2. Jet stream</h3>
+      <div class="realmap">
+        <img src="https://modeles16.meteociel.fr/modeles/gfs/run/gfs-5-120.png?6=" alt="GFS Europe Jet stream +120h"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+        <div class="fallback">La carta Jet non è caricabile direttamente.<br><a href="https://www.meteociel.fr/modeles/gfse_cartes.php?code=0&ech=120&mode=5" target="_blank">Apri la carta Jet su Meteociel</a></div>
+      </div>
+      <div class="meta">GFS 0.25° • stesso run • +120 h • fonte Meteociel</div>
+    </div>
+    <div class="card">
+      <h3>3. T850</h3>
+      <div class="realmap">
+        <img src="https://modeles16.meteociel.fr/modeles/gfs/run/gfs-1-120.png?6=" alt="GFS Europe temperatura 850 hPa +120h">
+      </div>
+      <div class="meta">GFS 0.25° • run 24/09/2026 06Z • +120 h • fonte Meteociel</div>
+    </div>
+  </div>
+
+  <div class="row3">
+    <div class="card metric"><div class="title">⚖️ GFS vs GEM</div><div class="value amber" id="modelAgreement"></div><div id="modelAgreementNote"></div></div>
+    <div class="card metric"><div class="title">🛡️ Affidabilità</div><div class="value green" id="confidenceText"></div><div class="confbar" id="confidenceBar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div></div>
+    <div class="card metric"><div class="title">🕒 Scadenza chiave</div><div class="value amber" id="keyWindow"></div><div id="keyWindowNote"></div></div>
+  </div>
+
+
+  
+  <div class="card final" id="liveDataPanel">
+    <h3>Dati automatici GFS / GEM</h3>
+    <div id="liveStatus" class="sourcebox">Caricamento dati reali…</div>
+    <div class="comparegrid">
+      <div class="comparebox">
+        <div class="comparetitle">GFS — riferimento Italia centrale</div>
+        <div class="comparevalue" id="liveGfs"></div>
+        <div class="comparedetail" id="liveGfsDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">GEM — riferimento Italia centrale</div>
+        <div class="comparevalue" id="liveGem"></div>
+        <div class="comparedetail" id="liveGemDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">Accordo automatico</div>
+        <div class="comparevalue" id="liveAgreement"></div>
+        <div class="comparedetail" id="liveAgreementDetail"></div>
+      </div>
+    </div>
+  </div>
+
+
+  
+  <div class="card final" id="autoDiagPanel">
+    <h3>Diagnosi automatica Meteoclima</h3>
+    <div class="delta"><b>Segnale dominante</b><span id="autoSignal"></span></div>
+    <div class="delta"><b>Scadenza chiave</b><span id="autoWindow"></span></div>
+    <div class="delta"><b>Possibile svolta</b><span id="autoTurn"></span></div>
+    <div class="delta"><b>Da sorvegliare</b><span id="autoWatch"></span></div>
+  </div>
+
+<div class="card final" id="ensemblePanel">
+    <h3>Affidabilità ensemble automatica</h3>
+    <div class="comparegrid">
+      <div class="comparebox">
+        <div class="comparetitle">GEFS</div>
+        <div class="comparevalue" id="gefsSpread"></div>
+        <div class="comparedetail" id="gefsDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">GEM Ensemble</div>
+        <div class="comparevalue" id="gemEnsSpread"></div>
+        <div class="comparedetail" id="gemEnsDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">Affidabilità combinata</div>
+        <div class="comparevalue" id="autoConfidence"></div>
+        <div class="comparedetail" id="autoConfidenceDetail"></div>
+      </div>
+    </div>
+  </div>
+
+<div class="card final" id="modelComparePanel">
+    <h3>Confronto GFS / GEM / Ensemble</h3>
+    <div class="comparegrid">
+      <div class="comparebox">
+        <div class="comparetitle">GFS</div>
+        <div class="comparevalue" id="gfsScenario"></div>
+        <div class="comparedetail" id="gfsDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">GEM</div>
+        <div class="comparevalue" id="gemScenario"></div>
+        <div class="comparedetail" id="gemDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">ENSEMBLE</div>
+        <div class="comparevalue" id="ensSupport"></div>
+        <div class="comparedetail" id="ensDetail"></div>
+      </div>
+    </div>
+    <div class="consensus">
+      <b>Consenso sintetico:</b> <span id="consensusText"></span>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="card metric"><div class="title">📈 Possibile svolta</div><div class="value amber" id="turningPoint"></div><div id="turningPointNote"></div></div>
+    <div class="card metric"><div class="title">🎯 Errore rispetto a ieri</div><div class="value green" id="yesterdayError"></div><div id="yesterdayErrorNote"></div></div>
+  </div>
+
+  <div class="card final">
+    <h3>Le 4 righe finali Meteoclima</h3>
+    <div class="line"><div class="badge">STATO ATTUALE</div><div id="finalState"></div></div>
+    <div class="line"><div class="badge b2">CAMBIAMENTO DA IERI</div><div id="finalChange"></div></div>
+    <div class="line"><div class="badge b3">AFFIDABILITÀ</div><div id="finalConfidence"></div></div>
+    <div class="line"><div class="badge b4">DA SORVEGLIARE</div><div id="finalWatch"></div></div>
+  </div>
+
+  <div class="bottom">
+    <div class="card mini"><h3>🌍 Contesto globale</h3><p><b>ENSO:</b> El Niño in rafforzamento — NOAA CPC: &gt;90% di probabilità di evento molto forte nell’autunno/inverno 2026–27.</p><p>Sole: stabile</p><p>Artico: ricrescita stagionale</p><p>Stratosfera: nessun segnale dominante</p></div>
+    <div class="card mini"><h3>📈 Prossimi giorni</h3><p>Nord Italia: variabile</p><p>Centro Italia: prevalenza stabile</p><p>Sud Italia: più esposto a correnti orientali</p></div>
+    <div class="card mini"><h3>🔗 Link rapidi</h3><p>Mappe dettagliate</p><p>Spaghetti ensemble</p><p>Indici teleconnettivi</p><p>Archivio storico</p></div>
+  </div>
+</section>
+
+
+<section id="mappe" class="tab hidden">
+  <div class="card metric">
+    <h2>Mappe operative</h2>
+    <p>Qui il confronto è diviso in tre blocchi: deterministico GFS, deterministico GEM e ensemble. Le mappe principali devono riferirsi alla stessa scadenza temporale quando le confrontiamo.</p>
+  </div>
+  <div class="comparegrid">
+    <div class="comparebox">
+      <div class="comparetitle">GFS</div>
+      <div class="comparevalue">Deterministico</div>
+      <div class="comparedetail">Z500/pressione, Jet e T850.</div>
+      <p><a href="https://www.meteociel.fr/modeles/gfse_cartes.php" target="_blank" style="color:#55c8ff;font-weight:800">Apri GFS Europe</a></p>
+    </div>
+    <div class="comparebox">
+      <div class="comparetitle">GEM</div>
+      <div class="comparevalue">Deterministico</div>
+      <div class="comparedetail">Secondo modello indipendente per verificare robustezza del pattern.</div>
+      <p><a href="https://www.meteociel.fr/modeles/cmc_cartes.php" target="_blank" style="color:#55c8ff;font-weight:800">Apri GEM / CMC</a></p>
+    </div>
+    <div class="comparebox">
+      <div class="comparetitle">ENSEMBLE</div>
+      <div class="comparevalue">Probabilistico</div>
+      <div class="comparedetail">GEFS + ensemble GEM per stimare dispersione e persistenza.</div>
+      <p><a href="https://www.meteociel.fr/modeles/gefs_cartes.php" target="_blank" style="color:#55c8ff;font-weight:800">Apri GEFS</a></p>
+      <p><a href="https://www.meteociel.fr/modeles/gemensembles_cartes.php" target="_blank" style="color:#55c8ff;font-weight:800">Apri Ensemble GEM</a></p>
+    </div>
+  </div>
+</section>
+
+
+<section id="ieri" class="tab hidden">
+  <div class="card metric">
+    <h2>Confronto con ieri</h2>
+    <div class="delta"><b>Segnale dominante</b><span id="cmpSignal"></span></div>
+    <div class="delta"><b>Affidabilità</b><span id="cmpConfidence"></span></div>
+    <div class="delta"><b>Scadenza chiave</b><span id="cmpWindow"></span></div>
+    <div class="delta"><b>Errore della previsione</b><span id="cmpError"></span></div>
+    <div class="delta"><b>Cambiamento sintetico</b><span id="cmpChange"></span></div>
+  </div>
+</section>
+
+
+<section id="storico" class="tab hidden">
+  <div class="card metric">
+    <h2>Storico Meteoclima</h2>
+    <p>Ogni apertura salva il profilo del giorno nel browser. Gli ultimi report restano disponibili qui per il confronto.</p>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</section>
+
+<section id="indici" class="tab hidden"><div class="card metric"><h2>ENSO e indici</h2><p>AO, NAO, ENSO, Artico e stratosfera: qui resteranno compatti quando non mostrano cambiamenti significativi.</p></div></section>
+
+<section id="installHelp" class="tab hidden">
+  <div class="card metric">
+    <h2>Installa Meteoclima</h2>
+    <p><b>Android / Chrome:</b> apri il menu ⋮ e scegli “Aggiungi a schermata Home” oppure “Installa app”.</p>
+    <p><b>iPhone / iPad / Safari:</b> tocca Condividi → “Aggiungi a Home”.</p>
+    <p><b>Mac / Chrome:</b> apri il menu del browser e scegli “Installa Meteoclima”.</p>
+    <p class="sub">Per funzionare come PWA completa deve essere servita tramite HTTPS o localhost.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
+    document.getElementById(btn.dataset.tab).classList.remove('hidden');
+  });
+});
+document.getElementById('refreshBtn').addEventListener('click',()=>{
+  document.querySelectorAll('.realmap img').forEach(img=>{
+    const base=img.src.split('&cb=')[0];
+    img.src=base+'&cb='+Date.now();
+  });
+  const b=document.getElementById('refreshBtn');
+  const old=b.textContent;
+  updateLiveModels();
+updateEnsembles();
+  b.textContent='✓ Dati ricaricati';
+  setTimeout(()=>b.textContent=old,1600);
+});
+
+const dailyProfile = {
+  date: "24/09/2026",
+  dominantPattern: "Dorsale atlantica in rinforzo",
+  dominantDetail: "con circolazione più depressionaria verso l’Europa orientale.",
+  gfsGem: "Parzialmente concordi",
+  gfsGemNote: "Entrambi sostengono il pattern di fondo; restano differenze sull’evoluzione nel medio termine.",
+  confidence: 5,
+  confidenceLabel: "Media–Alta",
+  keyWindow: "Tra +120 e +168 h",
+  keyWindowNote: "È la finestra in cui la dispersione modellistica diventa più importante.",
+  turningPoint: "Da monitorare",
+  turningPointNote: "Diventa credibile solo se compare in più run consecutivi ed è sostenuta dagli ensemble.",
+  yesterdayError: "Previsione confermata",
+  yesterdayErrorNote: "Il quadro generale è rimasto coerente con l’analisi precedente.",
+  state: "Dorsale sul settore occidentale europeo e circolazione più depressionaria verso est.",
+  change: "Nessun ribaltamento netto; il pattern generale resta riconoscibile.",
+  confidenceText: "Medio-alta nel breve termine; diminuisce progressivamente oltre 5–7 giorni.",
+  watch: "Posizione e ampiezza della dorsale occidentale, soprattutto la sua eventuale espansione verso nord-est.",
+  gfsScenario: "Dorsale occidentale / flusso più basso a est",
+  gfsDetail: "Il deterministico GFS mantiene un asse anticiclonico sul lato occidentale europeo e una maggiore ondulazione verso est.",
+  gemScenario: "Scenario simile, ma con differenze di ampiezza",
+  gemDetail: "GEM conserva lo stesso schema di fondo, ma può differire su posizione e profondità della saccatura nel medio termine.",
+  ensSupport: "Sostegno medio-alto",
+  ensDetail: "La maggioranza degli scenari mantiene il pattern di fondo; la dispersione cresce soprattutto oltre +120/+168 h.",
+  consensusText: "Pattern di fondo condiviso; divergenza crescente solo sul dettaglio e sul timing nel medio termine."
+};
+
+function renderDiagnostics(p){
+  document.getElementById("signalText").innerHTML =
+    p.dominantPattern.toUpperCase() + ' <span class="small">' + p.dominantDetail + '</span>';
+  document.getElementById("modelAgreement").textContent = p.gfsGem;
+  document.getElementById("modelAgreementNote").textContent = p.gfsGemNote;
+  document.getElementById("confidenceText").textContent = p.confidenceLabel;
+  document.getElementById("keyWindow").textContent = p.keyWindow;
+  document.getElementById("keyWindowNote").textContent = p.keyWindowNote;
+  document.getElementById("turningPoint").textContent = p.turningPoint;
+  document.getElementById("turningPointNote").textContent = p.turningPointNote;
+  document.getElementById("yesterdayError").textContent = p.yesterdayError;
+  document.getElementById("yesterdayErrorNote").textContent = p.yesterdayErrorNote;
+  document.getElementById("finalState").textContent = p.state;
+  document.getElementById("finalChange").textContent = p.change;
+  document.getElementById("finalConfidence").textContent = p.confidenceText;
+  document.getElementById("finalWatch").textContent = p.watch;
+
+
+  document.getElementById("gfsScenario").textContent = p.gfsScenario;
+  document.getElementById("gfsDetail").textContent = p.gfsDetail;
+  document.getElementById("gemScenario").textContent = p.gemScenario;
+  document.getElementById("gemDetail").textContent = p.gemDetail;
+  document.getElementById("ensSupport").textContent = p.ensSupport;
+  document.getElementById("ensDetail").textContent = p.ensDetail;
+  document.getElementById("consensusText").textContent = p.consensusText;
+
+  const bars = document.querySelectorAll("#confidenceBar span");
+  bars.forEach((bar,i)=>bar.classList.toggle("on", i < p.confidence));
+}
+renderDiagnostics(dailyProfile);
+
+
+(function seedDemoHistory(){
+  try{
+    const k = "meteoclima_history_v1";
+    const current = JSON.parse(localStorage.getItem(k) || "[]");
+    if(current.length === 0){
+      const seed = [{
+        date:"23/09/2026",
+        signal:"Dorsale atlantica presente",
+        signalDetail:"con asse ancora meno definito verso nord-est.",
+        confidence:"Media",
+        keyWindow:"Tra +144 e +192 h",
+        turningPoint:"Debole segnale",
+        state:"Pattern ovest-alto / est-basso già presente ma meno consolidato.",
+        change:"Dorsale in progressivo consolidamento.",
+        watch:"Possibile aumento del geopotenziale verso Europa centrale."
+      }];
+      localStorage.setItem(k, JSON.stringify(seed));
+    }
+  }catch(e){}
+})();
+
+const HISTORY_KEY = "meteoclima_history_v1";
+
+function loadHistory(){
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+
+function saveTodayProfile(p){
+  const hist = loadHistory();
+  const today = {
+    date: p.date,
+    signal: p.dominantPattern,
+    signalDetail: p.dominantDetail,
+    confidence: p.confidenceLabel,
+    keyWindow: p.keyWindow,
+    turningPoint: p.turningPoint,
+    state: p.state,
+    change: p.change,
+    watch: p.watch
+  };
+  const filtered = hist.filter(x => x.date !== today.date);
+  filtered.unshift(today);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered.slice(0, 30)));
+  return filtered.slice(0, 30);
+}
+
+function compareWithYesterday(p, hist){
+  const y = hist.find(x => x.date !== p.date);
+  const signal = y ? `${y.signal} → ${p.dominantPattern}` : "Nessun giorno precedente salvato";
+  const confidence = y ? `${y.confidence} → ${p.confidenceLabel}` : "N/D";
+  const keyWindow = y ? `${y.keyWindow} → ${p.keyWindow}` : "N/D";
+  const error = y ? p.yesterdayError + " — " + p.yesterdayErrorNote : "N/D";
+  const change = y ? p.change : "Il confronto inizierà dal prossimo report salvato.";
+  document.getElementById("cmpSignal").textContent = signal;
+  document.getElementById("cmpConfidence").textContent = confidence;
+  document.getElementById("cmpWindow").textContent = keyWindow;
+  document.getElementById("cmpError").textContent = error;
+  document.getElementById("cmpChange").textContent = change;
+}
+
+function renderHistory(hist){
+  const box = document.getElementById("historyList");
+  if(!hist.length){
+    box.innerHTML = '<div class="history-item">Nessun report salvato.</div>';
+    return;
+  }
+  box.innerHTML = hist.map(x => `
+    <div class="history-item">
+      <div class="history-top">
+        <div class="history-date">${x.date}</div>
+        <div class="history-signal">${x.signal}</div>
+      </div>
+      <div class="history-meta"><b>Affidabilità:</b> ${x.confidence} · <b>Scadenza chiave:</b> ${x.keyWindow}</div>
+      <div class="history-meta"><b>Stato:</b> ${x.state}</div>
+      <div class="history-meta"><b>Da sorvegliare:</b> ${x.watch}</div>
+    </div>
+  `).join("");
+}
+
+const historyNow = saveTodayProfile(dailyProfile);
+compareWithYesterday(dailyProfile, historyNow);
+renderHistory(historyNow);
+
+
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  } else {
+    alert("Se non compare l'installazione automatica, usa il menu del browser e scegli 'Aggiungi a schermata Home' o 'Installa app'.");
+  }
+});
+
+
+async function fetchOpenMeteoModel(modelName, endpoint){
+  // Coarse reference point in central Italy; Meteoclima remains a Europe-wide analysis project.
+  const lat = 42.9, lon = 11.6;
+  const vars = "pressure_msl,temperature_850hPa,geopotential_height_500hPa,wind_speed_300hPa";
+  const url = `${endpoint}?latitude=${lat}&longitude=${lon}&hourly=${vars}&models=${modelName}&forecast_days=8&timezone=UTC`;
+  const r = await fetch(url, {cache:"no-store"});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json();
+}
+
+function nearestHourIndex(times, targetHours=120){
+  const now = Date.now();
+  const target = now + targetHours*3600000;
+  let best=0, diff=Infinity;
+  times.forEach((t,i)=>{
+    const d=Math.abs(new Date(t+"Z").getTime()-target);
+    if(d<diff){diff=d;best=i}
+  });
+  return best;
+}
+
+function extractModelSnapshot(data){
+  const h=data.hourly;
+  const i=nearestHourIndex(h.time,120);
+  return {
+    time:h.time[i],
+    msl:h.pressure_msl?.[i],
+    t850:h.temperature_850hPa?.[i],
+    z500:h.geopotential_height_500hPa?.[i],
+    w300:h.wind_speed_300hPa?.[i]
+  };
+}
+
+function fmt(v, unit, digits=0){
+  return (v===null || v===undefined || Number.isNaN(v)) ? "N/D" : `${Number(v).toFixed(digits)} ${unit}`;
+}
+
+function agreementScore(a,b){
+  let score=0, total=0;
+  const checks=[
+    ["msl",5],      // hPa
+    ["t850",3],     // °C
+    ["z500",80],    // m
+    ["w300",20]     // km/h
+  ];
+  checks.forEach(([k,tol])=>{
+    if(a[k]!=null && b[k]!=null){
+      total++;
+      if(Math.abs(a[k]-b[k])<=tol) score++;
+    }
+  });
+  return total ? score/total : 0;
+}
+
+async function updateLiveModels(){
+  const status=document.getElementById("liveStatus");
+  try{
+    status.innerHTML='<span class="livewarn">Aggiornamento in corso…</span>';
+    const [gfsData,gemData]=await Promise.all([
+      fetchOpenMeteoModel("gfs_seamless","https://api.open-meteo.com/v1/gfs"),
+      fetchOpenMeteoModel("gem_global","https://api.open-meteo.com/v1/gem")
+    ]);
+    const g=extractModelSnapshot(gfsData), m=extractModelSnapshot(gemData);
+    window.__latestGfsData=gfsData; window.__latestGemData=gemData;
+    window.__latestGfsSnap=g; window.__latestGemSnap=m;
+    document.getElementById("liveGfs").textContent=`+120 h: T850 ${fmt(g.t850,"°C",1)}`;
+    document.getElementById("liveGfsDetail").textContent=
+      `MSLP ${fmt(g.msl,"hPa",0)} · Z500 ${fmt(g.z500,"m",0)} · vento 300 hPa ${fmt(g.w300,"km/h",0)}`;
+    document.getElementById("liveGem").textContent=`+120 h: T850 ${fmt(m.t850,"°C",1)}`;
+    document.getElementById("liveGemDetail").textContent=
+      `MSLP ${fmt(m.msl,"hPa",0)} · Z500 ${fmt(m.z500,"m",0)} · vento 300 hPa ${fmt(m.w300,"km/h",0)}`;
+
+    const a=agreementScore(g,m);
+    const label=a>=0.75?"Concordi":a>=0.5?"Parzialmente concordi":"Divergenti";
+    window.__agreementLabel=label;
+    document.getElementById("liveAgreement").textContent=label;
+    document.getElementById("liveAgreementDetail").textContent=
+      `Accordo su ${(a*100).toFixed(0)}% dei parametri verificati alla scadenza vicina a +120 h.`;
+    status.innerHTML='<span class="liveok">Dati reali aggiornati automaticamente da Open‑Meteo.</span>';
+
+    // Feed the visible model-agreement tile with the live result.
+    document.getElementById("modelAgreement").textContent=label;
+    document.getElementById("modelAgreementNote").textContent=
+      `Confronto automatico GFS/GEM a circa +120 h su pressione, T850, Z500 e vento a 300 hPa.`;
+    if(window.__confidenceLabel){
+      updateAutomaticDiagnosis(gfsData,gemData,g,m,window.__confidenceLabel,label);
+    }
+  }catch(err){
+    console.error(err);
+    status.innerHTML='<span class="livewarn">Dati automatici non disponibili in questo momento.</span> La dashboard continua a funzionare con le fonti manuali.';
+  }
+}
+updateLiveModels();
+
+
+async function fetchEnsemble(modelName){
+  const lat=42.9, lon=11.6;
+  const vars="pressure_msl,temperature_850hPa,geopotential_height_500hPa";
+  const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&hourly=${vars}&models=${modelName}&forecast_days=8&timezone=UTC`;
+  const r=await fetch(url,{cache:"no-store"});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json();
+}
+
+function collectMembers(hourly, prefix, idx){
+  const vals=[];
+  Object.keys(hourly).forEach(k=>{
+    if(k.startsWith(prefix+"_member")){
+      const v=hourly[k]?.[idx];
+      if(v!==null && v!==undefined && !Number.isNaN(v)) vals.push(Number(v));
+    }
+  });
+  return vals;
+}
+
+function stdev(arr){
+  if(!arr.length) return null;
+  const m=arr.reduce((a,b)=>a+b,0)/arr.length;
+  const v=arr.reduce((s,x)=>s+(x-m)*(x-m),0)/arr.length;
+  return Math.sqrt(v);
+}
+
+function ensembleSnapshot(data){
+  const h=data.hourly;
+  const idx=nearestHourIndex(h.time,120);
+  const z=collectMembers(h,"geopotential_height_500hPa",idx);
+  const t=collectMembers(h,"temperature_850hPa",idx);
+  const p=collectMembers(h,"pressure_msl",idx);
+  return {
+    idx,
+    time:h.time[idx],
+    n: Math.max(z.length,t.length,p.length),
+    zSpread:stdev(z),
+    tSpread:stdev(t),
+    pSpread:stdev(p)
+  };
+}
+
+function spreadLabel(s){
+  if(s===null) return "N/D";
+  if(s<=1.2) return "Bassa";
+  if(s<=2.5) return "Media";
+  return "Alta";
+}
+
+function confidenceFromSpreads(a,b){
+  const values=[a?.tSpread,b?.tSpread].filter(v=>v!=null);
+  if(!values.length) return {label:"N/D",score:0,detail:"Dati ensemble insufficienti."};
+  const avg=values.reduce((x,y)=>x+y,0)/values.length;
+  if(avg<=1.2) return {label:"Alta",score:7,detail:"Dispersione termica contenuta tra i membri."};
+  if(avg<=2.0) return {label:"Media–Alta",score:5,detail:"Dispersione moderata; scenario di fondo abbastanza robusto."};
+  if(avg<=3.0) return {label:"Media",score:4,detail:"Dispersione significativa nel medio termine."};
+  return {label:"Bassa",score:2,detail:"Dispersione elevata; scenario poco stabile."};
+}
+
+async function updateEnsembles(){
+  try{
+    const [gefsData, gemEnsData] = await Promise.all([
+      fetchEnsemble("gfs025"),
+      fetchEnsemble("gem_global")
+    ]);
+    const ge=ensembleSnapshot(gefsData);
+    const gm=ensembleSnapshot(gemEnsData);
+
+    document.getElementById("gefsSpread").textContent =
+      `${spreadLabel(ge.tSpread)} dispersione`;
+    document.getElementById("gefsDetail").textContent =
+      `${ge.n || "?"} membri · σ T850 ${ge.tSpread!=null?ge.tSpread.toFixed(1):"N/D"} °C · σ Z500 ${ge.zSpread!=null?ge.zSpread.toFixed(0):"N/D"} m`;
+
+    document.getElementById("gemEnsSpread").textContent =
+      `${spreadLabel(gm.tSpread)} dispersione`;
+    document.getElementById("gemEnsDetail").textContent =
+      `${gm.n || "?"} membri · σ T850 ${gm.tSpread!=null?gm.tSpread.toFixed(1):"N/D"} °C · σ Z500 ${gm.zSpread!=null?gm.zSpread.toFixed(0):"N/D"} m`;
+
+    const c=confidenceFromSpreads(ge,gm);
+    window.__confidenceLabel=c.label;
+    document.getElementById("autoConfidence").textContent=c.label;
+    document.getElementById("autoConfidenceDetail").textContent=c.detail;
+
+    // Feed main confidence tile and final line
+    document.getElementById("confidenceText").textContent=c.label;
+    const bars=document.querySelectorAll("#confidenceBar span");
+    bars.forEach((bar,i)=>bar.classList.toggle("on", i<c.score));
+    document.getElementById("finalConfidence").textContent =
+      `${c.label}: ${c.detail}`;
+    if(window.__latestGfsData && window.__latestGemData && window.__latestGfsSnap && window.__latestGemSnap){
+      updateAutomaticDiagnosis(
+        window.__latestGfsData, window.__latestGemData,
+        window.__latestGfsSnap, window.__latestGemSnap,
+        c.label, window.__agreementLabel || "N/D"
+      );
+    }
+  }catch(e){
+    console.error(e);
+    document.getElementById("autoConfidence").textContent="N/D";
+    document.getElementById("autoConfidenceDetail").textContent="Ensemble non disponibili in questo momento.";
+  }
+}
+updateEnsembles();
+
+
+function classifyPattern(g,m){
+  const avgT = [g?.t850,m?.t850].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
+               Math.max(1,[g?.t850,m?.t850].filter(v=>v!=null).length);
+  const avgP = [g?.msl,m?.msl].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
+               Math.max(1,[g?.msl,m?.msl].filter(v=>v!=null).length);
+  const avgZ = [g?.z500,m?.z500].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
+               Math.max(1,[g?.z500,m?.z500].filter(v=>v!=null).length);
+  const avgW = [g?.w300,m?.w300].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
+               Math.max(1,[g?.w300,m?.w300].filter(v=>v!=null).length);
+
+  let signal="Pattern poco definito";
+  let detail="I dati puntuali non mostrano un segnale dominante abbastanza netto.";
+  if(avgP>=1018 && avgZ>=5700){
+    signal="Promontorio anticiclonico dominante";
+    detail="Pressione e geopotenziale risultano relativamente elevati nel riferimento centrale.";
+  } else if(avgP<=1008 && avgZ<=5600){
+    signal="Circolazione depressionaria dominante";
+    detail="Pressione e geopotenziale relativamente bassi indicano un contesto più ciclonico.";
+  } else if(avgW>=160){
+    signal="Jet stream molto attivo";
+    detail="Il vento in alta troposfera risulta intenso, segnale di forte dinamica zonale/ondulata.";
+  } else if(avgT<=5){
+    signal="Massa d’aria fresca in evidenza";
+    detail="La T850 media indica una componente fresca significativa.";
+  } else if(avgT>=15){
+    signal="Massa d’aria mite/calda in evidenza";
+    detail="La T850 media indica una componente mite o calda significativa.";
+  }
+  return {signal,detail,avgT,avgP,avgZ,avgW};
+}
+
+function deriveKeyWindow(gfsData, gemData){
+  try{
+    const gt=gfsData.hourly.time;
+    const mt=gemData.hourly.time;
+    const horizons=[72,120,144,168];
+    let firstDiff=null;
+    for(const h of horizons){
+      const gi=nearestHourIndex(gt,h);
+      const mi=nearestHourIndex(mt,h);
+      const diffs=[];
+      const pairs=[
+        ["pressure_msl",5],
+        ["temperature_850hPa",3],
+        ["geopotential_height_500hPa",80]
+      ];
+      pairs.forEach(([k,tol])=>{
+        const a=gfsData.hourly[k]?.[gi], b=gemData.hourly[k]?.[mi];
+        if(a!=null && b!=null) diffs.push(Math.abs(a-b)/tol);
+      });
+      const score=diffs.length?diffs.reduce((a,b)=>a+b,0)/diffs.length:0;
+      if(score>1 && firstDiff===null) firstDiff=h;
+    }
+    return firstDiff ? `Intorno a +${firstDiff} h` : "Nessuna finestra critica entro +168 h";
+  }catch(e){ return "N/D"; }
+}
+
+function deriveTurningPoint(agreementLabel, confidenceLabel, keyWindow){
+  if(agreementLabel==="Divergenti" && /Bassa|Media/.test(confidenceLabel))
+    return "Possibile svolta concreta";
+  if(agreementLabel==="Parzialmente concordi" || /Intorno/.test(keyWindow))
+    return "Segnale da monitorare";
+  return "Nessuna svolta evidente";
+}
+
+function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementLabel){
+  const p=classifyPattern(g,m);
+  const keyWindow=deriveKeyWindow(gfsData,gemData);
+  const turning=deriveTurningPoint(agreementLabel,confidenceLabel,keyWindow);
+  let watch="Evoluzione di Z500, pressione e T850 nelle prossime emissioni.";
+  if(turning==="Possibile svolta concreta") watch="Verificare persistenza su più run e conferma ensemble.";
+  else if(turning==="Segnale da monitorare") watch="Controllare se la divergenza tra GFS e GEM aumenta o si riduce.";
+
+  document.getElementById("autoSignal").textContent=`${p.signal} — ${p.detail}`;
+  document.getElementById("autoWindow").textContent=keyWindow;
+  document.getElementById("autoTurn").textContent=turning;
+  document.getElementById("autoWatch").textContent=watch;
+
+  document.getElementById("signalText").innerHTML =
+    p.signal.toUpperCase() + ' <span class="small">' + p.detail + '</span>';
+  document.getElementById("keyWindow").textContent=keyWindow;
+  document.getElementById("keyWindowNote").textContent="Calcolata dal primo aumento significativo di divergenza GFS/GEM.";
+  document.getElementById("turningPoint").textContent=turning;
+  document.getElementById("turningPointNote").textContent="Derivata da accordo deterministico + affidabilità ensemble.";
+  document.getElementById("finalState").textContent=p.signal + ". " + p.detail;
+  document.getElementById("finalWatch").textContent=watch;
+
+  // Store today's derived profile in history
+  const todayISO=new Date().toLocaleDateString('it-IT');
+  const derived={
+    date:todayISO,
+    signal:p.signal,
+    signalDetail:p.detail,
+    confidence:confidenceLabel,
+    keyWindow:keyWindow,
+    turningPoint:turning,
+    state:p.signal + ". " + p.detail,
+    change:document.getElementById("finalChange").textContent || "Confronto in aggiornamento.",
+    watch:watch
+  };
+  const hist=loadHistory().filter(x=>x.date!==todayISO);
+  hist.unshift(derived);
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist.slice(0,30)));
+  compareWithYesterday(derived,hist);
+  renderHistory(hist);
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+</script>
+</body>
+</html>

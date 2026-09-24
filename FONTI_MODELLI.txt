@@ -1,0 +1,18 @@
+METEOCLIMA — FONTI MODELLISTICHE
+
+GFS deterministico:
+https://www.meteociel.fr/modeles/gfse_cartes.php
+
+GEM / CMC deterministico:
+https://www.meteociel.fr/modeles/cmc_cartes.php
+
+GEFS:
+https://www.meteociel.fr/modeles/gefs_cartes.php
+
+Ensemble GEM:
+https://www.meteociel.fr/modeles/gemensembles_cartes.php
+
+Metodo:
+- Confrontare sempre la stessa scadenza temporale.
+- Nessuna svolta viene considerata seria per una sola corsa.
+- Una svolta richiede persistenza su più run e sostegno ensemble.
