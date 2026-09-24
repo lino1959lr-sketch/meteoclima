@@ -122,13 +122,13 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
 
   <div class="sourcebox">
     <b>Dati reali collegati:</b> le tre carte operative usano il run GFS del 24/09/2026 06Z a +120 h quando l'immagine remota è disponibile.
-    ENSO: NOAA CPC, aggiornamento settembre 2026. Le mappe provengono da Meteociel/GFS e si aggiornano lato sorgente.
+    ENSO: NOAA CPC, aggiornamento settembre 2026. Le mappe in alto provengono da Meteociel/GFS; le carte ECMWF ufficiali sono nella scheda Mappe. I valori automatici usano Open‑Meteo.
   </div>
 
   
   <div class="sourcebox" id="autoStatus">
     <b>Diagnosi automatizzata:</b> i testi della dashboard sono ora generati da un unico profilo dati giornaliero.
-    Quando collegheremo GFS/GEM/ensemble in modo strutturato, basterà aggiornare i dati e la diagnosi cambierà da sola.
+    GFS, GEM ed ECMWF sono confrontati automaticamente quando i dati sono disponibili; gli ensemble restano un controllo distinto.
   </div>
 
   <div class="signal">
@@ -163,7 +163,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
   </div>
 
   <div class="row3">
-    <div class="card metric"><div class="title">⚖️ GFS vs GEM</div><div class="value amber" id="modelAgreement"></div><div id="modelAgreementNote"></div></div>
+    <div class="card metric"><div class="title">⚖️ GFS / GEM / ECMWF</div><div class="value amber" id="modelAgreement"></div><div id="modelAgreementNote"></div></div>
     <div class="card metric"><div class="title">🛡️ Affidabilità</div><div class="value green" id="confidenceText"></div><div class="confbar" id="confidenceBar"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span></div></div>
     <div class="card metric"><div class="title">🕒 Scadenza chiave</div><div class="value amber" id="keyWindow"></div><div id="keyWindowNote"></div></div>
   </div>
@@ -171,7 +171,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
 
   
   <div class="card final" id="liveDataPanel">
-    <h3>Dati automatici GFS / GEM</h3>
+    <h3>Dati automatici GFS / GEM / ECMWF</h3>
     <div id="liveStatus" class="sourcebox">Caricamento dati reali…</div>
     <div class="comparegrid">
       <div class="comparebox">
@@ -183,6 +183,11 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
         <div class="comparetitle">GEM — riferimento Italia centrale</div>
         <div class="comparevalue" id="liveGem"></div>
         <div class="comparedetail" id="liveGemDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">ECMWF IFS — riferimento Italia centrale</div>
+        <div class="comparevalue" id="liveEcmwf">Caricamento…</div>
+        <div class="comparedetail" id="liveEcmwfDetail"></div>
       </div>
       <div class="comparebox">
         <div class="comparetitle">Accordo automatico</div>
@@ -224,7 +229,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
   </div>
 
 <div class="card final" id="modelComparePanel">
-    <h3>Confronto GFS / GEM / Ensemble</h3>
+    <h3>Confronto GFS / GEM / ECMWF / Ensemble</h3>
     <div class="comparegrid">
       <div class="comparebox">
         <div class="comparetitle">GFS</div>
@@ -235,6 +240,11 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
         <div class="comparetitle">GEM</div>
         <div class="comparevalue" id="gemScenario"></div>
         <div class="comparedetail" id="gemDetail"></div>
+      </div>
+      <div class="comparebox">
+        <div class="comparetitle">ECMWF IFS</div>
+        <div class="comparevalue" id="ecmwfScenario">Valori a circa +120 h nel pannello automatico</div>
+        <div class="comparedetail" id="ecmwfDetail">Carta europea e spread ECMWF nella scheda Mappe.</div>
       </div>
       <div class="comparebox">
         <div class="comparetitle">ENSEMBLE</div>
@@ -271,7 +281,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
 <section id="mappe" class="tab hidden">
   <div class="card metric">
     <h2>Mappe operative</h2>
-    <p>Qui il confronto è diviso in tre blocchi: deterministico GFS, deterministico GEM e ensemble. Le mappe principali devono riferirsi alla stessa scadenza temporale quando le confrontiamo.</p>
+    <p>Confronta GFS, GEM ed ECMWF deterministici e poi gli ensemble. Seleziona la stessa scadenza temporale nelle carte prima di confrontarle.</p>
   </div>
   <div class="comparegrid">
     <div class="comparebox">
@@ -285,6 +295,13 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
       <div class="comparevalue">Deterministico</div>
       <div class="comparedetail">Secondo modello indipendente per verificare robustezza del pattern.</div>
       <p><a href="https://www.meteociel.fr/modeles/cmc_cartes.php" target="_blank" style="color:#55c8ff;font-weight:800">Apri GEM / CMC</a></p>
+    </div>
+    <div class="comparebox">
+      <div class="comparetitle">ECMWF IFS</div>
+      <div class="comparevalue">Deterministico e ensemble</div>
+      <div class="comparedetail">Carte europee ufficiali; scegli il run e la scadenza desiderata.</div>
+      <p><a href="https://charts.ecmwf.int/products/medium-z500-t850?projection=opencharts_europe" target="_blank" rel="noopener" style="color:#55c8ff;font-weight:800">Apri Z500 e T850 ECMWF</a></p>
+      <p><a href="https://charts.ecmwf.int/products/medium-t500-mean-spread?projection=opencharts_europe" target="_blank" rel="noopener" style="color:#55c8ff;font-weight:800">Apri ensemble ECMWF</a></p>
     </div>
     <div class="comparebox">
       <div class="comparetitle">ENSEMBLE</div>
@@ -357,8 +374,8 @@ const dailyProfile = {
   date: "24/09/2026",
   dominantPattern: "Dorsale atlantica in rinforzo",
   dominantDetail: "con circolazione più depressionaria verso l’Europa orientale.",
-  gfsGem: "Parzialmente concordi",
-  gfsGemNote: "Entrambi sostengono il pattern di fondo; restano differenze sull’evoluzione nel medio termine.",
+  gfsGem: "In aggiornamento",
+  gfsGemNote: "Il confronto GFS/GEM/ECMWF appare quando arrivano i dati automatici.",
   confidence: 5,
   confidenceLabel: "Media–Alta",
   keyWindow: "Tra +120 e +168 h",
@@ -576,30 +593,47 @@ async function updateLiveModels(){
       fetchOpenMeteoModel("gfs_seamless","https://api.open-meteo.com/v1/gfs"),
       fetchOpenMeteoModel("gem_global","https://api.open-meteo.com/v1/gem")
     ]);
+    // ECMWF can lag behind the other feeds; keep their readings available if it does.
+    const ecResult=await Promise.allSettled([
+      fetchOpenMeteoModel("ecmwf_ifs025","https://api.open-meteo.com/v1/ecmwf")
+    ]);
+    let ecData=ecResult[0].status==="fulfilled" ? ecResult[0].value : null;
     const g=extractModelSnapshot(gfsData), m=extractModelSnapshot(gemData);
+    let e=ecData ? extractModelSnapshot(ecData) : null;
+    if(e && [e.msl,e.t850,e.z500,e.w300].filter(v=>v!=null).length<3){
+      ecData=null; e=null;
+    }
     window.__latestGfsData=gfsData; window.__latestGemData=gemData;
     window.__latestGfsSnap=g; window.__latestGemSnap=m;
+    window.__latestEcmwfData=ecData; window.__latestEcmwfSnap=e;
     document.getElementById("liveGfs").textContent=`+120 h: T850 ${fmt(g.t850,"°C",1)}`;
     document.getElementById("liveGfsDetail").textContent=
       `MSLP ${fmt(g.msl,"hPa",0)} · Z500 ${fmt(g.z500,"m",0)} · vento 300 hPa ${fmt(g.w300,"km/h",0)}`;
     document.getElementById("liveGem").textContent=`+120 h: T850 ${fmt(m.t850,"°C",1)}`;
     document.getElementById("liveGemDetail").textContent=
       `MSLP ${fmt(m.msl,"hPa",0)} · Z500 ${fmt(m.z500,"m",0)} · vento 300 hPa ${fmt(m.w300,"km/h",0)}`;
+    document.getElementById("liveEcmwf").textContent=e ? `+120 h: T850 ${fmt(e.t850,"°C",1)}` : "Dati temporaneamente non disponibili";
+    document.getElementById("liveEcmwfDetail").textContent=e ?
+      `MSLP ${fmt(e.msl,"hPa",0)} · Z500 ${fmt(e.z500,"m",0)} · vento 300 hPa ${fmt(e.w300,"km/h",0)} · IFS 0,25°` :
+      "Consulta le carte ufficiali ECMWF nella scheda Mappe.";
+    document.getElementById("ecmwfScenario").textContent=e ? `+120 h: T850 ${fmt(e.t850,"°C",1)}` : "Dati temporaneamente non disponibili";
+    document.getElementById("ecmwfDetail").textContent=document.getElementById("liveEcmwfDetail").textContent;
 
-    const a=agreementScore(g,m);
+    const pairScores=e ? [agreementScore(g,m),agreementScore(g,e),agreementScore(m,e)] : [agreementScore(g,m)];
+    const a=pairScores.reduce((sum,n)=>sum+n,0)/pairScores.length;
     const label=a>=0.75?"Concordi":a>=0.5?"Parzialmente concordi":"Divergenti";
     window.__agreementLabel=label;
     document.getElementById("liveAgreement").textContent=label;
     document.getElementById("liveAgreementDetail").textContent=
-      `Accordo su ${(a*100).toFixed(0)}% dei parametri verificati alla scadenza vicina a +120 h.`;
-    status.innerHTML='<span class="liveok">Dati reali aggiornati automaticamente da Open‑Meteo.</span>';
+      `${e ? "GFS/GEM/ECMWF" : "GFS/GEM (ECMWF non disponibile)"}: accordo medio ${(a*100).toFixed(0)}% a circa +120 h su pressione, T850, Z500 e vento a 300 hPa. Riferimento puntuale, non giudizio sull’intera Europa.`;
+    status.innerHTML=e ? '<span class="liveok">Tre modelli aggiornati da Open‑Meteo.</span>' : '<span class="livewarn">ECMWF non disponibile; confronto temporaneo GFS/GEM.</span>';
 
     // Feed the visible model-agreement tile with the live result.
     document.getElementById("modelAgreement").textContent=label;
     document.getElementById("modelAgreementNote").textContent=
-      `Confronto automatico GFS/GEM a circa +120 h su pressione, T850, Z500 e vento a 300 hPa.`;
+      `Confronto ${e ? "GFS/GEM/ECMWF" : "GFS/GEM; ECMWF non disponibile"} a circa +120 h nel riferimento puntuale in Italia centrale.`;
     if(window.__confidenceLabel){
-      updateAutomaticDiagnosis(gfsData,gemData,g,m,window.__confidenceLabel,label);
+      updateAutomaticDiagnosis(gfsData,gemData,g,m,window.__confidenceLabel,label,ecData,e);
     }
   }catch(err){
     console.error(err);
@@ -703,7 +737,8 @@ async function updateEnsembles(){
       updateAutomaticDiagnosis(
         window.__latestGfsData, window.__latestGemData,
         window.__latestGfsSnap, window.__latestGemSnap,
-        c.label, window.__agreementLabel || "N/D"
+        c.label, window.__agreementLabel || "N/D",
+        window.__latestEcmwfData, window.__latestEcmwfSnap
       );
     }
   }catch(e){
@@ -715,15 +750,12 @@ async function updateEnsembles(){
 updateEnsembles();
 
 
-function classifyPattern(g,m){
-  const avgT = [g?.t850,m?.t850].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
-               Math.max(1,[g?.t850,m?.t850].filter(v=>v!=null).length);
-  const avgP = [g?.msl,m?.msl].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
-               Math.max(1,[g?.msl,m?.msl].filter(v=>v!=null).length);
-  const avgZ = [g?.z500,m?.z500].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
-               Math.max(1,[g?.z500,m?.z500].filter(v=>v!=null).length);
-  const avgW = [g?.w300,m?.w300].filter(v=>v!=null).reduce((a,b)=>a+b,0) /
-               Math.max(1,[g?.w300,m?.w300].filter(v=>v!=null).length);
+function classifyPattern(g,m,e){
+  const mean=k=>{
+    const values=[g?.[k],m?.[k],e?.[k]].filter(v=>v!=null);
+    return values.length ? values.reduce((a,b)=>a+b,0)/values.length : NaN;
+  };
+  const avgT=mean("t850"), avgP=mean("msl"), avgZ=mean("z500"), avgW=mean("w300");
 
   let signal="Pattern poco definito";
   let detail="I dati puntuali non mostrano un segnale dominante abbastanza netto.";
@@ -746,25 +778,26 @@ function classifyPattern(g,m){
   return {signal,detail,avgT,avgP,avgZ,avgW};
 }
 
-function deriveKeyWindow(gfsData, gemData){
+function deriveKeyWindow(gfsData, gemData, ecData){
   try{
-    const gt=gfsData.hourly.time;
-    const mt=gemData.hourly.time;
+    const feeds=[gfsData,gemData,ecData].filter(Boolean);
     const horizons=[72,120,144,168];
     let firstDiff=null;
     for(const h of horizons){
-      const gi=nearestHourIndex(gt,h);
-      const mi=nearestHourIndex(mt,h);
       const diffs=[];
       const pairs=[
         ["pressure_msl",5],
         ["temperature_850hPa",3],
         ["geopotential_height_500hPa",80]
       ];
-      pairs.forEach(([k,tol])=>{
-        const a=gfsData.hourly[k]?.[gi], b=gemData.hourly[k]?.[mi];
-        if(a!=null && b!=null) diffs.push(Math.abs(a-b)/tol);
-      });
+      for(let i=0;i<feeds.length;i++) for(let j=i+1;j<feeds.length;j++){
+        const left=feeds[i].hourly, right=feeds[j].hourly;
+        const li=nearestHourIndex(left.time,h), ri=nearestHourIndex(right.time,h);
+        pairs.forEach(([k,tol])=>{
+          const a=left[k]?.[li], b=right[k]?.[ri];
+          if(a!=null && b!=null) diffs.push(Math.abs(a-b)/tol);
+        });
+      }
       const score=diffs.length?diffs.reduce((a,b)=>a+b,0)/diffs.length:0;
       if(score>1 && firstDiff===null) firstDiff=h;
     }
@@ -780,13 +813,13 @@ function deriveTurningPoint(agreementLabel, confidenceLabel, keyWindow){
   return "Nessuna svolta evidente";
 }
 
-function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementLabel){
-  const p=classifyPattern(g,m);
-  const keyWindow=deriveKeyWindow(gfsData,gemData);
+function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementLabel,ecData,e){
+  const p=classifyPattern(g,m,e);
+  const keyWindow=deriveKeyWindow(gfsData,gemData,ecData);
   const turning=deriveTurningPoint(agreementLabel,confidenceLabel,keyWindow);
   let watch="Evoluzione di Z500, pressione e T850 nelle prossime emissioni.";
   if(turning==="Possibile svolta concreta") watch="Verificare persistenza su più run e conferma ensemble.";
-  else if(turning==="Segnale da monitorare") watch="Controllare se la divergenza tra GFS e GEM aumenta o si riduce.";
+  else if(turning==="Segnale da monitorare") watch=`Controllare se la divergenza tra GFS, GEM${e ? " ed ECMWF" : ""} aumenta o si riduce.`;
 
   document.getElementById("autoSignal").textContent=`${p.signal} — ${p.detail}`;
   document.getElementById("autoWindow").textContent=keyWindow;
@@ -796,7 +829,7 @@ function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementL
   document.getElementById("signalText").innerHTML =
     p.signal.toUpperCase() + ' <span class="small">' + p.detail + '</span>';
   document.getElementById("keyWindow").textContent=keyWindow;
-  document.getElementById("keyWindowNote").textContent="Calcolata dal primo aumento significativo di divergenza GFS/GEM.";
+  document.getElementById("keyWindowNote").textContent=`Calcolata dal primo aumento significativo di divergenza ${e ? "GFS/GEM/ECMWF" : "GFS/GEM"}.`;
   document.getElementById("turningPoint").textContent=turning;
   document.getElementById("turningPointNote").textContent="Derivata da accordo deterministico + affidabilità ensemble.";
   document.getElementById("finalState").textContent=p.signal + ". " + p.detail;
