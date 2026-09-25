@@ -105,7 +105,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
     <div><h1>Meteoclima</h1><div class="sub">Analisi • Scenari • Tendenze</div></div>
   </div>
   <div class="top-actions">
-    <div class="datebox"><b>Giovedì 24 settembre 2026</b><br><span class="sub">Aggiornato ore 18:00</span></div>
+    <div class="datebox" aria-live="polite"><b id="reportDate">Dati in caricamento</b><br><span class="sub" id="reportUpdated">In attesa delle fonti</span></div>
     <button id="refreshBtn">↻ Aggiorna</button><button id="installBtn">⬇ Installa</button>
   </div>
 </header>
@@ -121,7 +121,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
 <section id="oggi" class="tab">
 
   <div class="sourcebox">
-    <b>Dati reali collegati:</b> le tre carte operative usano il run GFS del 24/09/2026 06Z a +120 h quando l'immagine remota è disponibile.
+    <b>Dati reali collegati:</b> le tre carte operative richiedono le immagini GFS a +120 h disponibili su Meteociel. La data del run va verificata sulla carta; il suo caricamento è distinto da quello dei dati numerici.
     ENSO: NOAA CPC, aggiornamento settembre 2026. Le mappe in alto provengono da Meteociel/GFS; le carte ECMWF ufficiali sono nella scheda Mappe. I valori automatici usano Open‑Meteo.
   </div>
 
@@ -142,7 +142,7 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
       <div class="realmap">
         <img src="https://modeles16.meteociel.fr/modeles/gfs/run/gfs-0-120.png?6=" alt="GFS Europe Z500 e pressione +120h">
       </div>
-      <div class="meta">GFS 0.25° • run 24/09/2026 06Z • +120 h • fonte Meteociel</div>
+      <div class="meta">GFS 0.25° • run indicato sulla carta • +120 h • fonte Meteociel</div>
     </div>
     <div class="card">
       <h3>2. Jet stream</h3>
@@ -151,14 +151,14 @@ linear-gradient(120deg,#203f87,#34c8d2 48%,#f0c73e 73%,#f57524);
              onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
         <div class="fallback">La carta Jet non è caricabile direttamente.<br><a href="https://www.meteociel.fr/modeles/gfse_cartes.php?code=0&ech=120&mode=5" target="_blank">Apri la carta Jet su Meteociel</a></div>
       </div>
-      <div class="meta">GFS 0.25° • stesso run • +120 h • fonte Meteociel</div>
+      <div class="meta">GFS 0.25° • run indicato sulla carta • +120 h • fonte Meteociel</div>
     </div>
     <div class="card">
       <h3>3. T850</h3>
       <div class="realmap">
         <img src="https://modeles16.meteociel.fr/modeles/gfs/run/gfs-1-120.png?6=" alt="GFS Europe temperatura 850 hPa +120h">
       </div>
-      <div class="meta">GFS 0.25° • run 24/09/2026 06Z • +120 h • fonte Meteociel</div>
+      <div class="meta">GFS 0.25° • run indicato sulla carta • +120 h • fonte Meteociel</div>
     </div>
   </div>
 
@@ -357,18 +357,66 @@ document.querySelectorAll('nav button').forEach(btn=>{
     document.getElementById(btn.dataset.tab).classList.remove('hidden');
   });
 });
-document.getElementById('refreshBtn').addEventListener('click',()=>{
+let refreshInProgress=false;
+let lastSuccessfulRefresh=null;
+async function refreshDashboard(){
+  if(refreshInProgress) return;
+  refreshInProgress=true;
+  const button=document.getElementById('refreshBtn');
+  button.disabled=true;
+  button.textContent='↻ Aggiornamento…';
+  document.getElementById('reportUpdated').textContent='Contatto le fonti…';
   document.querySelectorAll('.realmap img').forEach(img=>{
-    const base=img.src.split('&cb=')[0];
-    img.src=base+'&cb='+Date.now();
+    const url=new URL(img.src);
+    url.searchParams.set('cb',Date.now());
+    img.style.display='';
+    if(img.nextElementSibling) img.nextElementSibling.style.display='none';
+    img.src=url.href;
   });
-  const b=document.getElementById('refreshBtn');
-  const old=b.textContent;
-  updateLiveModels();
-updateEnsembles();
-  b.textContent='✓ Dati ricaricati';
-  setTimeout(()=>b.textContent=old,1600);
-});
+  try{
+    window.__confidenceLabel=null;
+    const [models,ensembles]=await Promise.all([updateLiveModels(),updateEnsembles()]);
+    if(!models.ok) throw new Error('Modelli non disponibili');
+    updateAutomaticDiagnosis(window.__latestGfsData,window.__latestGemData,
+      window.__latestGfsSnap,window.__latestGemSnap,
+      ensembles.ok ? window.__confidenceLabel : 'N/D',window.__agreementLabel,
+      window.__latestEcmwfData,window.__latestEcmwfSnap);
+    lastSuccessfulRefresh=new Date();
+    const options={timeZone:'Europe/Rome'};
+    document.getElementById('reportDate').textContent=lastSuccessfulRefresh.toLocaleDateString('it-IT',
+      {...options,weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const time=lastSuccessfulRefresh.toLocaleTimeString('it-IT',{...options,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('reportUpdated').textContent=`Dati numerici letti alle ${time}`;
+    const partial=!models.complete || !ensembles.ok;
+    button.textContent=partial ? '↻ Aggiorna · dati parziali' : '↻ Aggiorna';
+    document.getElementById('autoStatus').textContent=
+      `Dati numerici letti alle ${time} (ora italiana). `+
+      (partial ? 'Alcune fonti non sono disponibili. ' : 'Modelli ed ensemble disponibili. ')+
+      'L’orario indica il recupero dei dati, non una nuova emissione dei modelli. Le mappe hanno il proprio run.';
+  }catch(error){
+    document.getElementById('reportUpdated').textContent=lastSuccessfulRefresh
+      ? 'Aggiornamento fallito · restano i dati precedenti'
+      : 'Aggiornamento fallito · riprova';
+    button.textContent='↻ Riprova aggiornamento';
+    document.getElementById('autoStatus').textContent=lastSuccessfulRefresh
+      ? 'Le fonti non hanno risposto correttamente. L’analisi visualizzata è quella dell’ultimo recupero riuscito.'
+      : 'Dati attuali non disponibili. Controlla la connessione e riprova.';
+  }finally{
+    button.disabled=false;
+    refreshInProgress=false;
+  }
+}
+document.getElementById('refreshBtn').addEventListener('click',refreshDashboard);
+
+async function fetchJson(url){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),15000);
+  try{
+    const response=await fetch(url,{cache:'no-store',signal:controller.signal});
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  }finally{clearTimeout(timeout);}
+}
 
 const dailyProfile = {
   date: "24/09/2026",
@@ -426,29 +474,13 @@ function renderDiagnostics(p){
   const bars = document.querySelectorAll("#confidenceBar span");
   bars.forEach((bar,i)=>bar.classList.toggle("on", i < p.confidence));
 }
-renderDiagnostics(dailyProfile);
+renderDiagnostics({...dailyProfile,
+  dominantPattern:'In attesa dei dati',dominantDetail:'Aggiornamento dalle fonti in corso.',
+  confidence:0,confidenceLabel:'N/D',state:'In attesa dei dati.',
+  confidenceText:'N/D',yesterdayError:'Non verificato',yesterdayErrorNote:'Servono osservazioni per verificare la previsione.',
+  change:'Confronto non ancora disponibile.'
+});
 
-
-(function seedDemoHistory(){
-  try{
-    const k = "meteoclima_history_v1";
-    const current = JSON.parse(localStorage.getItem(k) || "[]");
-    if(current.length === 0){
-      const seed = [{
-        date:"23/09/2026",
-        signal:"Dorsale atlantica presente",
-        signalDetail:"con asse ancora meno definito verso nord-est.",
-        confidence:"Media",
-        keyWindow:"Tra +144 e +192 h",
-        turningPoint:"Debole segnale",
-        state:"Pattern ovest-alto / est-basso già presente ma meno consolidato.",
-        change:"Dorsale in progressivo consolidamento.",
-        watch:"Possibile aumento del geopotenziale verso Europa centrale."
-      }];
-      localStorage.setItem(k, JSON.stringify(seed));
-    }
-  }catch(e){}
-})();
 
 const HISTORY_KEY = "meteoclima_history_v1";
 
@@ -478,10 +510,10 @@ function saveTodayProfile(p){
 
 function compareWithYesterday(p, hist){
   const y = hist.find(x => x.date !== p.date);
-  const signal = y ? `${y.signal} → ${p.dominantPattern}` : "Nessun giorno precedente salvato";
-  const confidence = y ? `${y.confidence} → ${p.confidenceLabel}` : "N/D";
+  const signal = y ? `${y.signal} → ${p.dominantPattern || p.signal}` : "Nessun giorno precedente salvato";
+  const confidence = y ? `${y.confidence} → ${p.confidenceLabel || p.confidence}` : "N/D";
   const keyWindow = y ? `${y.keyWindow} → ${p.keyWindow}` : "N/D";
-  const error = y ? p.yesterdayError + " — " + p.yesterdayErrorNote : "N/D";
+  const error = y ? (p.yesterdayError || "Non verificato") + " — " + (p.yesterdayErrorNote || "Servono osservazioni per verificare la previsione.") : "N/D";
   const change = y ? p.change : "Il confronto inizierà dal prossimo report salvato.";
   document.getElementById("cmpSignal").textContent = signal;
   document.getElementById("cmpConfidence").textContent = confidence;
@@ -509,7 +541,7 @@ function renderHistory(hist){
   `).join("");
 }
 
-const historyNow = saveTodayProfile(dailyProfile);
+const historyNow = loadHistory();
 compareWithYesterday(dailyProfile, historyNow);
 renderHistory(historyNow);
 
@@ -536,9 +568,7 @@ async function fetchOpenMeteoModel(modelName, endpoint){
   const lat = 42.9, lon = 11.6;
   const vars = "pressure_msl,temperature_850hPa,geopotential_height_500hPa,wind_speed_300hPa";
   const url = `${endpoint}?latitude=${lat}&longitude=${lon}&hourly=${vars}&models=${modelName}&forecast_days=8&timezone=UTC`;
-  const r = await fetch(url, {cache:"no-store"});
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  return await r.json();
+  return await fetchJson(url);
 }
 
 function nearestHourIndex(times, targetHours=120){
@@ -599,6 +629,9 @@ async function updateLiveModels(){
     ]);
     let ecData=ecResult[0].status==="fulfilled" ? ecResult[0].value : null;
     const g=extractModelSnapshot(gfsData), m=extractModelSnapshot(gemData);
+    if([g,m].some(s=>[s.msl,s.t850,s.z500,s.w300].some(v=>!Number.isFinite(v)))){
+      throw new Error('Dati dei modelli incompleti');
+    }
     let e=ecData ? extractModelSnapshot(ecData) : null;
     if(e && [e.msl,e.t850,e.z500,e.w300].filter(v=>v!=null).length<3){
       ecData=null; e=null;
@@ -632,24 +665,20 @@ async function updateLiveModels(){
     document.getElementById("modelAgreement").textContent=label;
     document.getElementById("modelAgreementNote").textContent=
       `Confronto ${e ? "GFS/GEM/ECMWF" : "GFS/GEM; ECMWF non disponibile"} a circa +120 h nel riferimento puntuale in Italia centrale.`;
-    if(window.__confidenceLabel){
-      updateAutomaticDiagnosis(gfsData,gemData,g,m,window.__confidenceLabel,label,ecData,e);
-    }
+    return {ok:true,complete:!!e};
   }catch(err){
     console.error(err);
-    status.innerHTML='<span class="livewarn">Dati automatici non disponibili in questo momento.</span> La dashboard continua a funzionare con le fonti manuali.';
+    status.innerHTML='<span class="livewarn">Dati automatici non disponibili in questo momento.</span> Consulta le fonti manuali.';
+    return {ok:false};
   }
 }
-updateLiveModels();
 
 
 async function fetchEnsemble(modelName){
   const lat=42.9, lon=11.6;
   const vars="pressure_msl,temperature_850hPa,geopotential_height_500hPa";
   const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&hourly=${vars}&models=${modelName}&forecast_days=8&timezone=UTC`;
-  const r=await fetch(url,{cache:"no-store"});
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  return await r.json();
+  return await fetchJson(url);
 }
 
 function collectMembers(hourly, prefix, idx){
@@ -733,21 +762,18 @@ async function updateEnsembles(){
     bars.forEach((bar,i)=>bar.classList.toggle("on", i<c.score));
     document.getElementById("finalConfidence").textContent =
       `${c.label}: ${c.detail}`;
-    if(window.__latestGfsData && window.__latestGemData && window.__latestGfsSnap && window.__latestGemSnap){
-      updateAutomaticDiagnosis(
-        window.__latestGfsData, window.__latestGemData,
-        window.__latestGfsSnap, window.__latestGemSnap,
-        c.label, window.__agreementLabel || "N/D",
-        window.__latestEcmwfData, window.__latestEcmwfSnap
-      );
-    }
+    return {ok:c.label!=='N/D'};
   }catch(e){
     console.error(e);
     document.getElementById("autoConfidence").textContent="N/D";
     document.getElementById("autoConfidenceDetail").textContent="Ensemble non disponibili in questo momento.";
+    document.getElementById("confidenceText").textContent="N/D";
+    document.getElementById("finalConfidence").textContent="N/D: ensemble non disponibili.";
+    document.querySelectorAll('#confidenceBar span').forEach(bar=>bar.classList.remove('on'));
+    window.__confidenceLabel=null;
+    return {ok:false};
   }
 }
-updateEnsembles();
 
 
 function classifyPattern(g,m,e){
@@ -836,7 +862,7 @@ function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementL
   document.getElementById("finalWatch").textContent=watch;
 
   // Store today's derived profile in history
-  const todayISO=new Date().toLocaleDateString('it-IT');
+  const todayISO=new Date().toLocaleDateString('it-IT',{timeZone:'Europe/Rome'});
   const derived={
     date:todayISO,
     signal:p.signal,
@@ -850,12 +876,13 @@ function updateAutomaticDiagnosis(gfsData,gemData,g,m,confidenceLabel,agreementL
   };
   const hist=loadHistory().filter(x=>x.date!==todayISO);
   hist.unshift(derived);
-  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist.slice(0,30)));
+  try{localStorage.setItem(HISTORY_KEY,JSON.stringify(hist.slice(0,30)));}catch(error){console.warn("Storico non salvato",error);}
   compareWithYesterday(derived,hist);
   renderHistory(hist);
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+refreshDashboard();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(console.warn);
 </script>
 </body>
 </html>
